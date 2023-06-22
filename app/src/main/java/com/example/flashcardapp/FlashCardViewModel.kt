@@ -1,3 +1,4 @@
+/*
 package com.example.flashcardapp
 
 import android.util.Log
@@ -35,114 +36,6 @@ class FlashCardViewModel(
     //var flashCards = MutableStateFlow<MutableList<FlashCard>>(mutableListOf())
 
     init {
-        allTabs.addAll(
-            listOf(
-                TrapeziumItem("Wine", R.drawable.ic_wine, wineTabColor),
-                TrapeziumItem("Food", R.drawable.ic_food, foodTabColor),
-                TrapeziumItem("Beverage", R.drawable.ic_beverage, beverageTabColor),
-                TrapeziumItem("Events", R.drawable.ic_events, eventTabColor),
-                TrapeziumItem("Special", R.drawable.ic_special, specialTabColor)
-            )
-        )
-        selectedTrapeziums.addAll(
-            listOf(
-                FlashCard(
-                    R.drawable.ic_launcher_background,
-                    "Which grape varietal makes Burgundy’s most famous red wine?",
-                    listOf("Orange", "Lemons", "Apples", "Grapes"),
-                    foodTabColor,
-                    false,
-                    "Food"
-                ),
-                FlashCard(
-                    R.drawable.ic_launcher_foreground,
-                    "Which grape varietal makes Burgundy’s most famous red wine?",
-                    listOf(
-                        "Orange", "Lemons", "Apples", "Grapes"
-                    ),
-                    foodTabColor,
-                    false,
-                    "Food"
-                ),
-                FlashCard(
-                    R.drawable.bg_wine2,
-                    "Which grape varietal makes Burgundy’s most famous red wine?",
-                    listOf(
-                        "Orange", "Lemons", "Apples", "Grapes"
-                    ),
-                    foodTabColor,
-                    true,
-                    "Food"
-                ),
-                FlashCard(
-                    R.drawable.bg_cup,
-                    "Which grape varietal makes Burgundy’s most famous red wine?",
-                    listOf(
-                        "Oranges", "Lemon", "Apple", "Grapes"
-                    ),
-                    wineTabColor,
-                    false,
-                    "Wine"
-                ),
-                FlashCard(
-                    R.drawable.bg_wine,
-                    "Which grape varietal makes Burgundy’s most famous red wine?",
-                    listOf(
-                        "Orange", "Lemons", "Apple", "Grapes"
-                    ),
-                    wineTabColor,
-                    false,
-                    "Wine"
-                ),
-                FlashCard(
-                    R.drawable.bg_wine2,
-                    "Which grape varietal makes Burgundy’s most famous red wine?",
-                    listOf(
-                        "Orange", "Lemon", "Apples", "Grapes"
-                    ),
-                    wineTabColor,
-                    true,
-                    "Wine"
-                ),
-
-                FlashCard(
-                    R.drawable.bg_wine2,
-                    "Which grape varietal makes Burgundy’s most famous red wine?",
-                    listOf(
-                        "Orange", "Lemon", "Apples", "Grapes"
-                    ),
-                    beverageTabColor,
-                    false,
-                    "Beverage"
-                ),
-                FlashCard(
-                    R.drawable.bg_wine2,
-                    "Which grape varietal makes Burgundy’s most famous red wine?",
-                    listOf(
-                        "Orange", "Lemon", "Apples", "Grapes"
-                    ),
-                    beverageTabColor,
-                    false,
-                    "Beverage"
-                ),
-                FlashCard(
-                    R.drawable.bg_wine2,
-                    "Which grape varietal makes Burgundy’s most famous red wine?",
-                    listOf(
-                        "Orange", "Lemon", "Apples", "Grapes"
-                    ),
-                    beverageTabColor,
-                    false,
-                    "Beverage"
-                )
-            )
-        )
-
-        categoryMap = selectedTrapeziums
-            .groupBy { it.category }
-            .mapValues { (_, items) -> items }
-            .toMap(HashMap())
-
         categoryMap[categorySelected]?.let { list ->
             flashCards.addAll(list.mapIndexed { index, item ->
                 item.isSelected = (index == list.lastIndex);item
@@ -166,4 +59,4 @@ class FlashCardViewModel(
             it.isSelected = (it.text == categorySelected)
         }
     }
-}
+}*/

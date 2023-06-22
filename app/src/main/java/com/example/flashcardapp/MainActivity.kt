@@ -3,23 +3,136 @@ package com.example.flashcardapp
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
-import androidx.activity.viewModels
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateListOf
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.lifecycle.lifecycleScope
 import com.example.flashcardapp.ui.theme.FlashCardAppTheme
+import com.example.flashcardapp.ui.theme.beverageTabColor
+import com.example.flashcardapp.ui.theme.eventTabColor
+import com.example.flashcardapp.ui.theme.foodTabColor
+import com.example.flashcardapp.ui.theme.specialTabColor
+import com.example.flashcardapp.ui.theme.wineTabColor
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 
 class MainActivity : ComponentActivity() {
-    val model by viewModels<FlashCardViewModel>()
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContent {
+            val selectedTrapeziums = listOf(
+                FlashCard(
+                    R.drawable.ic_launcher_background,
+                    "Which grape varietal makes Burgundy’s most famous red wine?",
+                    listOf("Orange", "Lemons", "Apples", "Grapes"),
+                    foodTabColor,
+                    false,
+                    "Food"
+                ),
+                FlashCard(
+                    R.drawable.ic_launcher_foreground,
+                    "Which grape varietal makes Burgundy’s most famous red wine?",
+                    listOf(
+                        "Orange", "Lemons", "Apples", "Grapes"
+                    ),
+                    foodTabColor,
+                    false,
+                    "Food"
+                ),
+                FlashCard(
+                    R.drawable.bg_wine2,
+                    "Which grape varietal makes Burgundy’s most famous red wine?",
+                    listOf(
+                        "Orange", "Lemons", "Apples", "Grapes"
+                    ),
+                    foodTabColor,
+                    true,
+                    "Food"
+                ),
+                FlashCard(
+                    R.drawable.bg_cup,
+                    "Which grape varietal makes Burgundy’s most famous red wine?",
+                    listOf(
+                        "Oranges", "Lemon", "Apple", "Grapes"
+                    ),
+                    wineTabColor,
+                    false,
+                    "Wine"
+                ),
+                FlashCard(
+                    R.drawable.bg_wine,
+                    "Which grape varietal makes Burgundy’s most famous red wine?",
+                    listOf(
+                        "Orange", "Lemons", "Apple", "Grapes"
+                    ),
+                    wineTabColor,
+                    false,
+                    "Wine"
+                ),
+                FlashCard(
+                    R.drawable.bg_wine2,
+                    "Which grape varietal makes Burgundy’s most famous red wine?",
+                    listOf(
+                        "Orange", "Lemon", "Apples", "Grapes"
+                    ),
+                    wineTabColor,
+                    true,
+                    "Wine"
+                ),
+
+                FlashCard(
+                    R.drawable.bg_wine2,
+                    "Which grape varietal makes Burgundy’s most famous red wine?",
+                    listOf(
+                        "Orange", "Lemon", "Apples", "Grapes"
+                    ),
+                    beverageTabColor,
+                    false,
+                    "Beverage"
+                ),
+                FlashCard(
+                    R.drawable.bg_wine2,
+                    "Which grape varietal makes Burgundy’s most famous red wine?",
+                    listOf(
+                        "Orange", "Lemon", "Apples", "Grapes"
+                    ),
+                    beverageTabColor,
+                    false,
+                    "Beverage"
+                ),
+                FlashCard(
+                    R.drawable.bg_wine2,
+                    "Which grape varietal makes Burgundy’s most famous red wine?",
+                    listOf(
+                        "Orange", "Lemon", "Apples", "Grapes"
+                    ),
+                    beverageTabColor,
+                    false,
+                    "Beverage"
+                )
+            )
+            val allTabs = listOf(
+                TrapeziumItem("Wine", R.drawable.ic_wine, wineTabColor),
+                TrapeziumItem("Food", R.drawable.ic_food, foodTabColor),
+                TrapeziumItem("Beverage", R.drawable.ic_beverage, beverageTabColor),
+                TrapeziumItem("Events", R.drawable.ic_events, eventTabColor),
+                TrapeziumItem("Special", R.drawable.ic_special, specialTabColor)
+            )
+
+            val categoryMap: HashMap<String, List<FlashCard>> = selectedTrapeziums
+                .groupBy { it.category }
+                .mapValues { (_, items) -> items }
+                .toMap(HashMap())
+
+
             FlashCardAppTheme {
                 Column(
                     modifier = Modifier
@@ -27,85 +140,39 @@ class MainActivity : ComponentActivity() {
                         .background(Color.Black)
                 ) {
                     val categoryList = listOf("Wine", "Food", "Beverage", "Events", "Special")
-                    /*val categoryList = listOf("Wine", "Food", "Beverage", "Events", "Special")
                     var categorySelected by remember { mutableStateOf(categoryList[0]) }
-                    val foodCards = remember(categorySelected) {
-                        mutableStateListOf<FlashCard>()
-                    }
-
-                    categoryMap[categorySelected]?.let { list ->
-                        foodCards.addAll(list.mapIndexed { index, item ->
-                            item.isSelected = (index == list.lastIndex);item
-                        })
-                        Log.d("FoodCardsList",foodCards.toList().size.toString())
-                    }
 
                     allTabs.onEach {
                         it.isSelected = (it.text == categorySelected)
                     }
-*/
-                    /* val categoryMap: HashMap<String, List<FlashCard>> = selectedTrapeziums
-                         .groupBy { it.category }
-                         .mapValues { (_, items) -> items }
-                         .toMap(HashMap())
-                     val categoryList = listOf("Wine", "Food", "Beverage", "Events", "Special")
 
-                     val foodCards = remember { mutableStateListOf<FlashCard>() }
-                     foodCards.clear()
-                     categoryMap[categoryList[0]]?.let { foodCards.addAll(it) }
-                     val selectedTrapezium = remember { mutableStateListOf(0) }*/
+                    val flashCards = remember { mutableStateListOf<FlashCard>() }
+                    flashCards.clear()
+
+                    categoryMap[categorySelected]?.let { list ->
+                        flashCards.addAll(list.mapIndexed { index, item ->
+                            item.isSelected = (index == list.lastIndex);item
+                        })
+                    }
                     FlashCardsAndTabs(
-                        viewModels(),
-                        model.flashCards,
-                        model.allTabs,
+                        flashCards,
+                        allTabs,
                         onSwipe = { card ->
-                           //model.flashCards.value.removeLastOrNull()
-                            model.flashCards.removeLastOrNull()
-                            if (model.flashCards.size == 0) {
+                            flashCards.removeLastOrNull()
+                            if (flashCards.size == 0) {
                                 lifecycleScope.launch(Dispatchers.Main) {
                                     delay(100)
                                     val index = categoryList.indexOf(card.category)
-                                    //categorySelected = categoryList[index + 1]
-                                    model.setCategory(categoryList[index + 1])
+                                    categorySelected = categoryList[index + 1]
                                 }
                             } else {
-                                model.flashCards[model.flashCards.lastIndex] =
-                                    model.flashCards[model.flashCards.lastIndex].copy(
-                                        isSelected = true
-                                    )
+                                flashCards[flashCards.lastIndex] =
+                                    flashCards[flashCards.lastIndex].copy(isSelected = true)
                             }
-
-                            /* val index = foodCards.indexOfFirst { it.id == card.id }
-                             foodCards.remove(card)
-                             if (index == 0) {
-                                 val categoryIndex = categoryList.indexOf(card.category)
-                                 if (categoryIndex != -1) {
-                                     foodCards.clear()
-                                     categoryMap[categoryList[categoryIndex + 1]]?.let {
-                                         foodCards.addAll(
-                                             it
-                                         )
-                                     }
-                                     selectedTrapezium.clear()
-                                     selectedTrapezium.add(categoryIndex + 1)
-                                 }
-                             } else {
-                                 foodCards[index - 1] = foodCards[index - 1].copy(isSelected = true)
-                             }*/
                         }
                     ) { category ->
-                        lifecycleScope.launch(Dispatchers.Main) {
-                            delay(100)
-                            model.setCategory(category)
-                            //categorySelected = category
-                        }
-                        /*foodCards.clear()
-                        val categoryIndex = categoryList.indexOf(category)
-                        categoryMap[categoryList[categoryIndex]]?.let {
-                            foodCards.addAll(
-                                it
-                            )
-                        }*/
+                        flashCards.clear()
+                        categorySelected = category
                     }
                 }
             }

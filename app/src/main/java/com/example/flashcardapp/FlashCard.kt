@@ -54,7 +54,6 @@ import java.util.UUID
 
 @Composable
 fun FlashCardsAndTabs(
-    model: Lazy<FlashCardViewModel>,
     flashCard: List<FlashCard>,
     selectedTrapeziums: List<TrapeziumItem>,
     onSwipe: (FlashCard) -> Unit,
@@ -63,7 +62,7 @@ fun FlashCardsAndTabs(
     Row(modifier = Modifier.padding(start = 36.dp, end = 8.dp)) {
         Box(modifier = Modifier.weight(1f))
         {
-            model.value.flashCards.ToFlashCardItems(onSwipe)
+            flashCard.ToFlashCardItems(onSwipe)
             //flashCard.ToFlashCardItems(onSwipe)
         }
         TrapeziumShapeList(onCategoryChanged, selectedTrapeziums)
