@@ -1,22 +1,26 @@
 package com.example.flashcardapp
 
 import android.util.Log
-import androidx.compose.animation.ExperimentalAnimationApi
 import androidx.compose.animation.core.Animatable
+import androidx.compose.animation.core.AnimationSpec
+import androidx.compose.animation.core.AnimationVector2D
+import androidx.compose.animation.core.VectorConverter
 import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.tween
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.gestures.detectDragGestures
+import androidx.compose.foundation.gestures.Orientation
 import androidx.compose.foundation.gestures.detectVerticalDragGestures
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -27,18 +31,21 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.wrapContentSize
 import androidx.compose.foundation.shape.CornerSize
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.ExperimentalMaterialApi
+import androidx.compose.material.FractionalThreshold
+import androidx.compose.material.rememberSwipeableState
+import androidx.compose.material.swipeable
+import androidx.compose.material3.Card
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.State
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.composed
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.rotate
@@ -46,25 +53,32 @@ import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.input.pointer.positionChange
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalConfiguration
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.unit.Dp
+import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.alexstyl.swipeablecard.Direction
 import com.alexstyl.swipeablecard.ExperimentalSwipeableCardApi
 import com.alexstyl.swipeablecard.SwipeableCardState
-import com.alexstyl.swipeablecard.swipableCard
+import com.example.flashcardapp.ui.CardFace
+import com.example.flashcardapp.ui.FlipCard
 import com.example.flashcardapp.ui.theme.statusBorderColor
 import com.example.flashcardapp.ui.theme.statusColor
 import com.wajahatkarim.flippable.FlipAnimationType
 import com.wajahatkarim.flippable.Flippable
+import com.wajahatkarim.flippable.FlippableController
 import com.wajahatkarim.flippable.rememberFlipController
-import kotlinx.coroutines.launch
 import java.util.UUID
+import kotlin.math.abs
+import kotlin.math.roundToInt
 
 @Composable
 fun FlashCardsAndTabs(
@@ -77,17 +91,73 @@ fun FlashCardsAndTabs(
         Box(modifier = Modifier.weight(1f))
         {
             flashCard.ToFlashCardItems(onSwipe)
-            //flashCard.ToFlashCardItems(onSwipe)
         }
         TrapeziumShapeList(onCategoryChanged, selectedTrapeziums)
     }
 }
 
 @Composable
-fun List<FlashCard>.ToFlashCardItems(onSwipe: (FlashCard) -> Unit) {
-    Log.d("CardList", this.toList().joinToString())
+fun NextCategoryBox(card: FlashCard) {
+    Box(
+        modifier = Modifier
+            .padding(start = 36.dp, end = 8.dp)
+            .clickable(enabled = false) {}
+            .alpha(0.2f)
+            .border(
+                width = 8.dp,
+                color = card.color,
+                shape = RoundedCornerShape(25.dp)
+            ),
+        contentAlignment = Alignment.Center
+    ) {
+        val painter = painterResource(card.image)
+        Image(
+            modifier = Modifier
+                .fillMaxSize(),
+            painter = painter,
+            contentDescription = null,
+            contentScale = ContentScale.FillHeight
+        )
+
+        Text(
+            modifier = Modifier
+                .align(Alignment.TopCenter)
+                .padding(top = 40.dp),
+            fontSize = 36.sp,
+            text = "Flash Cards",
+            color = Color.White
+        )
+
+        Text(
+            modifier = Modifier
+                .align(Alignment.Center)
+                .padding(start = 16.dp, end = 16.dp),
+            fontSize = 24.sp,
+            lineHeight = 40.sp,
+            text = card.question,
+            style = MaterialTheme.typography.bodyMedium,
+            color = Color.White
+        )
+
+        Text(
+            modifier = Modifier
+                .align(Alignment.BottomCenter)
+                .padding(bottom = 40.dp),
+            fontSize = 16.sp,
+            text = "Tap to flip",
+            textDecoration = TextDecoration.Underline,
+            color = Color.Yellow
+        )
+    }
+}
+
+@Composable
+fun List<FlashCard>.ToFlashCardItems(
+    onSwipe: (FlashCard) -> Unit,
+) {
     this.forEachIndexed { i, fc ->
         FlashCardItem(
+            CardFace.Front,
             card = fc,
             offset = (size.minus(i + 1) * 40).dp,
             alpha = 0.1f
@@ -97,15 +167,16 @@ fun List<FlashCard>.ToFlashCardItems(onSwipe: (FlashCard) -> Unit) {
     }
 }
 
-@OptIn(ExperimentalSwipeableCardApi::class)
+@OptIn(ExperimentalSwipeableCardApi::class, ExperimentalMaterialApi::class)
 @Composable
 fun FlashCardItem(
+    cardFace: CardFace,
     card: FlashCard,
     offset: Dp,
     alpha: Float,
     onSwipe: (FlashCard) -> Unit,
 ) {
-    val offsetY = animateDpAsState(
+    val offset = animateDpAsState(
         targetValue = if (card.isSelected) 0.dp else offset,
         animationSpec = tween(400)
     )
@@ -113,29 +184,96 @@ fun FlashCardItem(
         targetValue = if (card.isSelected) 1f else alpha,
         animationSpec = tween(400)
     )
+
+    var cardFace by remember(card) {
+        mutableStateOf(cardFace)
+    }
+
     val screenDensity = LocalConfiguration.current.densityDpi.div(160F)
-
-    val maxWidth = LocalConfiguration.current.screenWidthDp.dp.value.times(screenDensity)
-    val maxHeight = LocalConfiguration.current.screenHeightDp.dp.value.times(screenDensity)
-
-    val state = remember(card.id) {
+    var offsetX by remember { mutableStateOf(0f) }
+    var offsetY by remember { mutableStateOf(0f) }
+    var flippableController = remember(card.id) { FlippableController() }
+    /*val state = remember(card.id) {
         val a = SwipeableCardState(maxWidth, maxHeight)
         a
-    }
+    }*/
 
     Box(
         modifier = Modifier
             .fillMaxWidth()
             .height((LocalConfiguration.current.screenHeightDp - LocalConfiguration.current.screenHeightDp * 0.2).dp)
-            .offset(y = offsetY.value)
+            .offset { IntOffset(offsetX.roundToInt(), offsetY.roundToInt()) }
+            .offset(y = offset.value)
             .pointerInput(card) {
                 detectVerticalDragGestures(
-                    onDragStart = { },
+                    onDragStart = {
+                    },
                     onDragEnd = { onSwipe(card) },
+                    onVerticalDrag = { change, amount ->
+                        change.consume()
+                        offsetX += amount
+                        offsetY += amount
+                    })
+            }
+            .graphicsLayer(
+                translationX = offsetX,
+                translationY = offsetY,
+                rotationZ = offsetX / 10,
+            )
+            /*.pointerInput(card) {
+                detectVerticalDragGestures(
+                    onDragStart = { },
+                    onDragEnd = {
+                        val coercedOffset = Offset(offsetX, offsetY)
+                            .coerceIn(
+                                listOf(Direction.Left, Direction.Down, Direction.Right),
+                                maxHeight = maxHeight,
+                                maxWidth = maxWidth
+                            )
+
+                        *//*if (hasNotTravelledEnough(maxWidth, maxHeight, coercedOffset)) {
+                            //if swipe cancel
+                        } else {
+                            val horizontalTravel = abs(offsetX)
+                            val verticalTravel = abs(offsetY)
+
+                            if (horizontalTravel > verticalTravel) {
+                                if (offsetX > 0) {
+                                    state.swipe(Direction.Right)
+                                    onSwiped(Direction.Right)
+                                } else {
+                                    state.swipe(Direction.Left)
+                                    onSwiped(Direction.Left)
+                                }
+                            } else {
+                                if (state.offset.targetValue.y < 0) {
+                                    state.swipe(Direction.Up)
+                                    onSwiped(Direction.Up)
+                                } else {
+                                    state.swipe(Direction.Down)
+                                    onSwiped(Direction.Down)
+                                }
+                            }
+                        }*//*
+                        onSwipe(card)
+                    },
                     onDragCancel = { },
-                    onVerticalDrag = { change, dragAmount ->  }
+                    onVerticalDrag = { change, dragAmount ->
+                        val newValue = Offset(
+                            x = dragAmount.coerceIn(-maxWidth, maxWidth),
+                            y = dragAmount.coerceIn(-maxHeight, maxHeight)
+                        )
+                        if (change.positionChange() != Offset.Zero) change.consume()
+                        offsetX = newValue.x
+                        offsetY = newValue.y
+                    }
                 )
             }
+            .graphicsLayer(
+                translationX = offsetX,
+                translationY = offsetY,
+                rotationZ = (offsetX / 60).coerceIn(-40f, 40f),
+            )*/
             /*.swipableCard(
                 state = state,
                 onSwiped = {
@@ -147,8 +285,12 @@ fun FlashCardItem(
             )*/
             .alpha(alphaX.value),
     ) {
-        Flippable(
-            frontSide = {
+        FlipCard(
+            cardFace = cardFace,
+            onClick = { cardFace = cardFace.next },
+            modifier = Modifier
+                .fillMaxSize(),
+            front = {
                 Box(
                     modifier = Modifier
                         .border(
@@ -199,8 +341,7 @@ fun FlashCardItem(
                     )
                 }
             },
-
-            backSide = {
+            back = {
                 Box(
                     modifier = Modifier
                         .border(
@@ -245,16 +386,115 @@ fun FlashCardItem(
                     }
                 }
             },
-
-            flipController = rememberFlipController(),
-            flipDurationMs = 800,
-            flipAnimationType = FlipAnimationType.HORIZONTAL_CLOCKWISE,
-            flipOnTouch = card.isSelected
         )
+        /* Flippable(
+             frontSide = {
+                 Box(
+                     modifier = Modifier
+                         .border(
+                             width = 8.dp,
+                             color = card.color,
+                             shape = RoundedCornerShape(25.dp)
+                         )
+                         .fillMaxSize(),
+                     contentAlignment = Alignment.Center
+                 ) {
+                     val painter = painterResource(card.image)
+                     Image(
+                         modifier = Modifier
+                             .fillMaxSize(),
+                         painter = painter,
+                         contentDescription = null,
+                         contentScale = ContentScale.FillHeight
+                     )
+
+                     Text(
+                         modifier = Modifier
+                             .align(Alignment.TopCenter)
+                             .padding(top = 40.dp),
+                         fontSize = 36.sp,
+                         text = "Flash Cards",
+                         color = Color.White
+                     )
+
+                     Text(
+                         modifier = Modifier
+                             .align(Alignment.Center)
+                             .padding(start = 16.dp, end = 16.dp),
+                         fontSize = 24.sp,
+                         lineHeight = 40.sp,
+                         text = card.question,
+                         style = MaterialTheme.typography.bodyMedium,
+                         color = Color.White
+                     )
+
+                     Text(
+                         modifier = Modifier
+                             .align(Alignment.BottomCenter)
+                             .padding(bottom = 40.dp),
+                         fontSize = 16.sp,
+                         text = "Tap to flip",
+                         textDecoration = TextDecoration.Underline,
+                         color = Color.Yellow
+                     )
+                 }
+             },
+
+             backSide = {
+                 Box(
+                     modifier = Modifier
+                         .border(
+                             width = 8.dp,
+                             color = card.color,
+                             shape = RoundedCornerShape(25.dp)
+                         )
+                         .fillMaxSize()
+                         .background(Color.Black),
+                     contentAlignment = Alignment.Center
+                 ) {
+                     val painter = painterResource(card.image)
+                     Image(
+                         modifier = Modifier
+                             .fillMaxSize(),
+                         painter = painter,
+                         contentDescription = null,
+                         contentScale = ContentScale.FillHeight
+                     )
+                     Column {
+                         Column {
+                             repeat(4) {
+                                 RoundedCornerChip(
+                                     correctAnswer = it == 0,
+                                     contentColor = if (0 == it) Color.Black else Color.White,
+                                     imageResId = R.drawable.cooper_credit,
+                                     backgroundColor = if (0 == it) statusColor else if (3 == it) Color.Red else Color.Transparent,
+                                     text = card.answers[it]
+                                 )
+                             }
+                         }
+                         Text(
+                             modifier = Modifier
+                                 .align(Alignment.CenterHorizontally)
+                                 .padding(top = 55.dp),
+                             fontFamily = FontFamily.SansSerif,
+                             fontSize = 14.sp,
+                             text = "Tap to flip",
+                             textDecoration = TextDecoration.Underline,
+                             color = statusBorderColor
+                         )
+                     }
+                 }
+             },
+
+             flipController = flippableController,
+             flipDurationMs = 800,
+             flipAnimationType = FlipAnimationType.HORIZONTAL_CLOCKWISE,
+             flipOnTouch = card.isSelected,
+         )*/
     }
 }
 
-@Composable
+/*@Composable
 fun RoundedCornerChip(
     correctAnswer: Boolean,
     contentColor: Color,
@@ -275,7 +515,7 @@ fun RoundedCornerChip(
             Row {
                 Text(
                     text = text,
-                    modifier = Modifier.weight(0.1f),
+                    modifier = Modifier.weight(0.8f),
                     style = TextStyle(fontSize = 14.sp),
                     color = contentColor
                 )
@@ -298,7 +538,79 @@ fun RoundedCornerChip(
         }
     }
     Spacer(modifier = Modifier.height(12.dp))
+}*/
+
+@Composable
+fun RoundedCornerChip(
+    correctAnswer: Boolean,
+    contentColor: Color,
+    imageResId: Int,
+    backgroundColor: Color,
+    text: String,
+) {
+    Surface(
+        modifier = Modifier
+            .fillMaxWidth()
+            .height(60.dp)
+            .padding(horizontal = 16.dp),
+        shape = RoundedCornerShape(16.dp),
+        color = backgroundColor,
+        border = BorderStroke(1.dp, statusBorderColor)
+    ) {
+        Row(
+            verticalAlignment = Alignment.CenterVertically,
+            modifier = Modifier.fillMaxSize()
+        ) {
+            if (correctAnswer) {
+                Box(
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    Text(
+                        text = text,
+                        modifier = Modifier
+                            .align(Alignment.Center),
+                        style = TextStyle(fontSize = 14.sp),
+                        color = contentColor
+                    )
+                }
+            } else {
+                Box(
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    Text(
+                        text = text,
+                        modifier = Modifier
+                            .align(Alignment.Center),
+                        style = TextStyle(fontSize = 14.sp),
+                        color = contentColor
+                    )
+                }
+            }
+        }
+
+        if (correctAnswer) {
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                modifier = Modifier.fillMaxSize(),
+                horizontalArrangement = Arrangement.End
+            ) {
+                Box(
+                    modifier = Modifier.wrapContentSize()
+                ) {
+                    Image(
+                        painter = painterResource(imageResId),
+                        contentDescription = null,
+                        modifier = Modifier
+                            .padding(end = 20.dp),
+                        contentScale = ContentScale.FillBounds
+                    )
+                }
+            }
+        }
+    }
+    Spacer(modifier = Modifier.height(12.dp))
 }
+
 
 data class FlashCard(
     val image: Int,
@@ -428,17 +740,6 @@ fun DrawTrapezium(color: Color) {
             color = color
         )
     }*/
-}
-
-@Composable
-fun Modifier.swipeable(swipeProgress: State<Float>): Modifier = composed {
-    this.then(
-        Modifier.graphicsLayer {
-            translationX =
-                swipeProgress.value * 200 // Adjust this value for desired swipe distance
-            rotationZ = swipeProgress.value * 15 // Optional: Rotate the card while swiping
-        }
-    )
 }
 
 

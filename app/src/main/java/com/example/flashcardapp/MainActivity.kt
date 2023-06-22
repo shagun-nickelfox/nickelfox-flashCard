@@ -5,6 +5,7 @@ import android.util.Log
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.runtime.getValue
@@ -134,20 +135,19 @@ class MainActivity : ComponentActivity() {
                 .toMap(HashMap())
 
 
+            val flashCards = remember { mutableStateListOf<FlashCard>() }
             FlashCardAppTheme {
-                Column(
+                Box(
                     modifier = Modifier
                         .fillMaxSize()
                         .background(Color.Black)
                 ) {
                     val categoryList = listOf("Wine", "Food", "Beverage", "Events", "Special")
                     var categorySelected by remember { mutableStateOf(categoryList[0]) }
-
                     allTabs.onEach {
                         it.isSelected = (it.text == categorySelected)
                     }
 
-                    val flashCards = remember{ mutableStateListOf<FlashCard>() }
                     flashCards.clear()
 
                     categoryMap[categorySelected]?.let { list ->
@@ -155,6 +155,7 @@ class MainActivity : ComponentActivity() {
                             item.isSelected = (index == list.lastIndex);item
                         })
                     }
+                    //NextCategoryBox(flashCards[0])
                     FlashCardsAndTabs(
                         flashCards,
                         allTabs,
@@ -163,21 +164,23 @@ class MainActivity : ComponentActivity() {
                             if (flashCards.size == 0) {
                                 lifecycleScope.launch(Dispatchers.Main) {
                                     delay(100)
-                                    Log.d("CategoryIndex", card.category)
                                     val index = categoryList.indexOf(card.category)
-                                    Log.d("CategoryIndex", index.toString())
-                                    categorySelected = categoryList[index + 1]
-                                    Log.d("CategoryIndexSelected", categorySelected)
+                                    categorySelected = if (index == -1) {
+                                        categoryList[0]
+                                    } else {
+                                        categoryList[index + 1]
+                                    }
                                 }
                             } else {
                                 flashCards[flashCards.lastIndex] =
                                     flashCards[flashCards.lastIndex].copy(isSelected = true)
                             }
-                        }
+                        },
                     ) { category ->
-                        flashCards.clear()
-                        Log.d("CategoryIndex", category)
-                        categorySelected = category
+                        lifecycleScope.launch {
+                            Log.d("CategoryIndex", category)
+                            categorySelected = category
+                        }
                     }
                 }
             }
