@@ -1,6 +1,7 @@
 package com.example.flashcardapp
 
 import android.os.Bundle
+import android.util.Log
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.compose.foundation.background
@@ -84,7 +85,7 @@ class MainActivity : ComponentActivity() {
                         "Orange", "Lemon", "Apples", "Grapes"
                     ),
                     wineTabColor,
-                    true,
+                    false,
                     "Wine"
                 ),
 
@@ -146,7 +147,7 @@ class MainActivity : ComponentActivity() {
                         it.isSelected = (it.text == categorySelected)
                     }
 
-                    val flashCards = remember { mutableStateListOf<FlashCard>() }
+                    val flashCards = remember{ mutableStateListOf<FlashCard>() }
                     flashCards.clear()
 
                     categoryMap[categorySelected]?.let { list ->
@@ -162,8 +163,11 @@ class MainActivity : ComponentActivity() {
                             if (flashCards.size == 0) {
                                 lifecycleScope.launch(Dispatchers.Main) {
                                     delay(100)
+                                    Log.d("CategoryIndex", card.category)
                                     val index = categoryList.indexOf(card.category)
+                                    Log.d("CategoryIndex", index.toString())
                                     categorySelected = categoryList[index + 1]
+                                    Log.d("CategoryIndexSelected", categorySelected)
                                 }
                             } else {
                                 flashCards[flashCards.lastIndex] =
@@ -172,6 +176,7 @@ class MainActivity : ComponentActivity() {
                         }
                     ) { category ->
                         flashCards.clear()
+                        Log.d("CategoryIndex", category)
                         categorySelected = category
                     }
                 }
@@ -179,3 +184,4 @@ class MainActivity : ComponentActivity() {
         }
     }
 }
+

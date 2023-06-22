@@ -1,6 +1,8 @@
 package com.example.flashcardapp
 
 import android.util.Log
+import androidx.compose.animation.ExperimentalAnimationApi
+import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.tween
@@ -8,6 +10,8 @@ import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.gestures.detectDragGestures
+import androidx.compose.foundation.gestures.detectVerticalDragGestures
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -26,13 +30,22 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.State
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.composed
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.rotate
+import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.res.painterResource
@@ -50,6 +63,7 @@ import com.example.flashcardapp.ui.theme.statusColor
 import com.wajahatkarim.flippable.FlipAnimationType
 import com.wajahatkarim.flippable.Flippable
 import com.wajahatkarim.flippable.rememberFlipController
+import kotlinx.coroutines.launch
 import java.util.UUID
 
 @Composable
@@ -114,7 +128,14 @@ fun FlashCardItem(
             .fillMaxWidth()
             .height((LocalConfiguration.current.screenHeightDp - LocalConfiguration.current.screenHeightDp * 0.2).dp)
             .offset(y = offsetY.value)
-            .clickable { onSwipe(card) }
+            .pointerInput(card) {
+                detectVerticalDragGestures(
+                    onDragStart = { },
+                    onDragEnd = { onSwipe(card) },
+                    onDragCancel = { },
+                    onVerticalDrag = { change, dragAmount ->  }
+                )
+            }
             /*.swipableCard(
                 state = state,
                 onSwiped = {
@@ -126,56 +147,7 @@ fun FlashCardItem(
             )*/
             .alpha(alphaX.value),
     ) {
-        Box(
-            modifier = Modifier
-                .border(
-                    width = 8.dp,
-                    color = card.color,
-                    shape = RoundedCornerShape(25.dp)
-                )
-                .fillMaxSize(),
-            contentAlignment = Alignment.Center
-        ) {
-            val painter = painterResource(card.image)
-            Image(
-                modifier = Modifier
-                    .fillMaxSize(),
-                painter = painter,
-                contentDescription = null,
-                contentScale = ContentScale.FillHeight
-            )
-
-            Text(
-                modifier = Modifier
-                    .align(Alignment.TopCenter)
-                    .padding(top = 40.dp),
-                fontSize = 36.sp,
-                text = "Flash Cards",
-                color = Color.White
-            )
-
-            Text(
-                modifier = Modifier
-                    .align(Alignment.Center)
-                    .padding(start = 16.dp, end = 16.dp),
-                fontSize = 24.sp,
-                lineHeight = 40.sp,
-                text = card.question,
-                style = MaterialTheme.typography.bodyMedium,
-                color = Color.White
-            )
-
-            Text(
-                modifier = Modifier
-                    .align(Alignment.BottomCenter)
-                    .padding(bottom = 40.dp),
-                fontSize = 16.sp,
-                text = "Tap to flip",
-                textDecoration = TextDecoration.Underline,
-                color = Color.Yellow
-            )
-        }
-        /*Flippable(
+        Flippable(
             frontSide = {
                 Box(
                     modifier = Modifier
@@ -278,7 +250,7 @@ fun FlashCardItem(
             flipDurationMs = 800,
             flipAnimationType = FlipAnimationType.HORIZONTAL_CLOCKWISE,
             flipOnTouch = card.isSelected
-        )*/
+        )
     }
 }
 
@@ -456,6 +428,17 @@ fun DrawTrapezium(color: Color) {
             color = color
         )
     }*/
+}
+
+@Composable
+fun Modifier.swipeable(swipeProgress: State<Float>): Modifier = composed {
+    this.then(
+        Modifier.graphicsLayer {
+            translationX =
+                swipeProgress.value * 200 // Adjust this value for desired swipe distance
+            rotationZ = swipeProgress.value * 15 // Optional: Rotate the card while swiping
+        }
+    )
 }
 
 
