@@ -1,3 +1,4 @@
+/*
 package com.example.flashcardapp
 
 import androidx.compose.animation.core.animateDpAsState
@@ -180,10 +181,12 @@ fun FlashCardItem(
     var offsetX by remember { mutableStateOf(0f) }
     var offsetY by remember { mutableStateOf(0f) }
     var flippableController = remember(card.id) { FlippableController() }
-    /*val state = remember(card.id) {
+    */
+/*val state = remember(card.id) {
         val a = SwipeableCardState(maxWidth, maxHeight)
         a
-    }*/
+    }*//*
+
 
     Box(
         modifier = Modifier
@@ -207,7 +210,8 @@ fun FlashCardItem(
                 translationY = offsetY,
                 rotationZ = offsetX / 10,
             )
-            /*.pointerInput(card) {
+            */
+/*.pointerInput(card) {
                 detectVerticalDragGestures(
                     onDragStart = { },
                     onDragEnd = {
@@ -218,7 +222,9 @@ fun FlashCardItem(
                                 maxWidth = maxWidth
                             )
 
-                        *//*if (hasNotTravelledEnough(maxWidth, maxHeight, coercedOffset)) {
+                        *//*
+*/
+/*if (hasNotTravelledEnough(maxWidth, maxHeight, coercedOffset)) {
                             //if swipe cancel
                         } else {
                             val horizontalTravel = abs(offsetX)
@@ -242,6 +248,8 @@ fun FlashCardItem(
                                 }
                             }
                         }*//*
+*/
+/*
                         onSwipe(card)
                     },
                     onDragCancel = { },
@@ -260,8 +268,10 @@ fun FlashCardItem(
                 translationX = offsetX,
                 translationY = offsetY,
                 rotationZ = (offsetX / 60).coerceIn(-40f, 40f),
-            )*/
-            /*.swipableCard(
+            )*//*
+
+            */
+/*.swipableCard(
                 state = state,
                 onSwiped = {
                     onSwipe(card)
@@ -269,7 +279,8 @@ fun FlashCardItem(
                 onSwipeCancel = {
                     println("The swiping was cancelled")
                 }
-            )*/
+            )*//*
+
             .alpha(alphaX.value)
     ) {
         FlipCard(
@@ -374,7 +385,8 @@ fun FlashCardItem(
                 }
             },
         )
-        /* Flippable(
+        */
+/* Flippable(
              frontSide = {
                  Box(
                      modifier = Modifier
@@ -477,7 +489,8 @@ fun FlashCardItem(
              flipDurationMs = 800,
              flipAnimationType = FlipAnimationType.HORIZONTAL_CLOCKWISE,
              flipOnTouch = card.isSelected,
-         )*/
+         )*//*
+
     }
 }
 
@@ -662,7 +675,8 @@ fun DrawTrapezium(color: Color) {
             )
             .background(color)
     )
-    /*Canvas(
+    */
+/*Canvas(
         modifier = Modifier
             .fillMaxSize()
     ) {
@@ -678,7 +692,8 @@ fun DrawTrapezium(color: Color) {
             path = path,
             color = color
         )
-    }*/
+    }*//*
+
 }
 
 
@@ -687,3 +702,4 @@ fun DrawTrapezium(color: Color) {
 
 
 
+*/

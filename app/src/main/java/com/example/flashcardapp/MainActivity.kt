@@ -1,4 +1,3 @@
-/*
 package com.example.flashcardapp
 
 import android.os.Bundle
@@ -202,4 +201,3 @@ class MainActivity : ComponentActivity() {
     }
 }
 
-*/
