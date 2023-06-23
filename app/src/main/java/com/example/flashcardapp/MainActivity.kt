@@ -155,21 +155,34 @@ class MainActivity : ComponentActivity() {
                             item.isSelected = (index == list.lastIndex);item
                         })
                     }
+
+                    val nextCard = remember { mutableStateOf(flashCards[0]) }
                     //NextCategoryBox(flashCards[0])
                     FlashCardsAndTabs(
+                        nextCard,
                         flashCards,
                         allTabs,
                         onSwipe = { card ->
                             flashCards.removeLastOrNull()
                             if (flashCards.size == 0) {
                                 lifecycleScope.launch(Dispatchers.Main) {
-                                    delay(100)
+                                    //delay(100)
                                     val index = categoryList.indexOf(card.category)
                                     categorySelected = if (index == -1) {
                                         categoryList[0]
                                     } else {
                                         categoryList[index + 1]
                                     }
+                                }
+                            } else if (flashCards.size == 1) {
+                                flashCards[flashCards.lastIndex] =
+                                    flashCards[flashCards.lastIndex].copy(isSelected = true)
+                                val index = categoryList.indexOf(card.category)
+                                card.lastCard = true
+                                if (index != -1) {
+                                    val list = categoryMap[categoryList[index + 1]]
+                                    if (list != null)
+                                        nextCard.value = list[list.size - 1]
                                 }
                             } else {
                                 flashCards[flashCards.lastIndex] =
